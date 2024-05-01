@@ -1,3 +1,5 @@
+A simple web application used to track your tasks and agenda.  Users only have the ability to view and modify their own tasks.
+
 ## REST Endpoints
 
 Name                           | Method | Path
