@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="style.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body>
+        <div id="app">
+            <!-- this is my Vue app -->
+            <div id="wrapper">
+                <img src="images/AgendaAce.svg" alt="" id="agenda-ace-header">
+                <template v-if="add">
+                    <div id="add-task">
+                        <h2>Add Task</h2>
+                        <img src="images/plusicon.png" alt="Plus Icon" id="plus-icon" @click="toggleAdd">
+                    </div>
+                </template>
+
+                <div id="tag-selector-container">
+                    <h4>Filter by tag:</h4>
+                    <select name="tags" id="tag-selector" @change="filterTasks($event.target.value)">
+                        <option value="none"></option>
+                        <option value="school">School</option>
+                        <option value="work">Work</option>
+                        <option value="chores">Chores</option>
+                        <option value="appointment">Appointment</option>
+                    </select>
+                </div>
+
+                <template v-if="tasksView">
+                    <div id="task-display">
+                        <div v-for="date in uniqueDates" class="task">
+    
+                            <div class="task-date">
+                                <ul>
+                                    <li>{{date}}</li>
+                                </ul>
+                            </div>
+    
+                            <div v-for="task in tasks[date]" class="task-details" :class="task.tag" @click="openTaskInfo(task.name, task.time, task.notes, task.tag, date, task._id)">
+                                <ul>
+                                    <li>{{task.name}}</li>
+                                    <li>{{task.time}}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <template v-if="taskInfo">
+                    <div id="task-info-container" :class="currentTask.tag">
+                        <img src="images/close-icon.png" alt="close" id="task-info-close-button" @click="closeTaskInfo">
+                        <div id="task-info">
+                            <h2>{{currentTask.name}}</h2>
+                            <h3>{{currentTask.date}} {{currentTask.time}}</h3>
+                            <ul>
+                                <li>Notes: {{currentTask.notes}}</li>
+                                <li>Tag: {{currentTask.tag}}</li>
+                            </ul>
+                        </div>
+                        <div id="task-info-container-buttons">
+                            <button @click="openEdit">Edit</button>
+                            <button @click="deleteTask">Delete</button>
+                        </div>
+                    </div>
+                </template>
+
+                <template v-if="addDisplay">
+                    <div id="add-task-container">
+                        <div id="add-task-header">
+                            <h2>Add Task</h2>
+                            <img src="images/close-icon.png" alt="close" @click="toggleAdd">
+                        </div>
+                        <div id="task-inputs">
+                            <label>
+                                <span>Task Name:</span>
+                                <input type="text" v-model="newTaskName" @input="validateTasks">
+                            </label>
+                            <label>
+                                <span>Time:</span>
+                                <input type="time" v-model="newTaskTime" @change="validateTasks">
+                            </label>
+                            <label>
+                                <span>Date:</span>
+                                <input type="date" v-model="newTaskDate" @change="validateTasks">
+                            </label>
+                            <label>
+                                <span>Notes:</span>
+                                <textarea v-model="newTaskNotes" @change="validateTasks" rows="4"></textarea>
+                            </label>
+                            <label>
+                                <span>Tags:</span>
+                                <select name="tags" id="tag-selector" v-model="newTaskTag">
+                                    <option value="none"></option>
+                                    <option value="school">School</option>
+                                    <option value="work">Work</option>
+                                    <option value="chores">Chores</option>
+                                    <option value="appointment">Appointment</option>
+                                </select>
+                            </label>
+                            <button v-on:click="addTask" :disabled="!taskIsValid">Add Task</button>
+                        </div>
+                        <div id="error-messages">
+                            <ul id="error-messages-list">
+                                <li class="error-message">{{ errorMessageForField('taskName') }}</li>
+                                <li class="error-message">{{ errorMessageForField('taskTime') }}</li>
+                                <li class="error-message">{{ errorMessageForField('taskDate') }}</li>
+                                <li class="error-message">{{ errorMessageForField('taskNotes') }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </template>                
+
+                <template v-if="editDisplay">
+                    <div id="edit-task-container" :class="currentTask.tag">
+                        <div id="edit-task-header">
+                            <h2>Edit Task</h2>
+                            <img src="images/close-icon.png" alt="close" @click="closeEdit">
+                        </div>
+                        <div id="task-inputs">
+                            <label>
+                                <span>Task Name:</span>
+                                <input type="text" v-model="newTaskName" @input="validateTasks">
+                            </label>
+                            <label>
+                                <span>Time:</span>
+                                <input type="time" v-model="newTaskTime" @change="validateTasks">
+                            </label>
+                            <label>
+                                <span>Date:</span>
+                                <input type="date" v-model="newTaskDate" @change="validateTasks">
+                            </label>
+                            <label>
+                                <span>Notes:</span>
+                                <textarea v-model="newTaskNotes" @change="validateTasks" rows="4"></textarea>
+                            </label>
+                            <label>
+                              <span>Tags:</span>
+                              <select name="tags" id="tag-selector" v-model="newTaskTag">
+                                <option value="none"></option>
+                                <option value="school">School</option>
+                                <option value="work">Work</option>
+                                <option value="chores">Chores</option>
+                                <option value="appointment">Appointment</option>
+                            </select>
+                            </label>
+                            <button v-on:click="editTask" :disabled="!taskIsValid" >Edit Task</button>
+                        </div>
+                        <div id="error-messages">
+                            <ul id="error-messages-list">
+                                <li class="error-message">{{ errorMessageForField('taskName') }}</li>
+                                <li class="error-message">{{ errorMessageForField('taskTime') }}</li>
+                                <li class="error-message">{{ errorMessageForField('taskDate') }}</li>
+                                <li class="error-message">{{ errorMessageForField('taskNotes') }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </template>
+
+            </div>
+        </div>
+        <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+        <script src="app.js"></script>
+    </body>
+</html>
